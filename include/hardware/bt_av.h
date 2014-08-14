@@ -1,4 +1,8 @@
 /*
+ * Copyright (C) 2017, The Linux Foundation. All rights reserved.
+ * Not a Contribution.
+ */
+/*
  * Copyright (C) 2012 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -104,6 +108,14 @@ typedef enum {
   BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO = 0x1 << 1
 } btav_a2dp_codec_channel_mode_t;
 
+/** Callback for updating apps for A2dp multicast state.
+ */
+typedef void (* btav_is_multicast_enabled_callback)(int state);
+
+/** Callback to notify reconfig a2dp when A2dp Soft Handoff is triggered
+*/
+typedef void(* btav_reconfig_a2dp_trigger_callback)(int reason, bt_bdaddr_t *bd_addr);
+
 /*
  * Structure for representing codec capability or configuration.
  * It is used for configuring A2DP codec preference, and for reporting back
@@ -138,13 +150,19 @@ typedef void (* btav_connection_state_callback)(btav_connection_state_t state,
 typedef void (* btav_audio_state_callback)(btav_audio_state_t state,
                                                bt_bdaddr_t *bd_addr);
 
+/** Callback for connection priority of device for incoming connection
+ * btav_connection_priority_t
+ */
+typedef void (* btav_connection_priority_callback)(bt_bdaddr_t *bd_addr);
+
 /** Callback for audio configuration change.
  *  Used only for the A2DP Source interface.
  */
 typedef void (* btav_audio_source_config_callback)(
     btav_a2dp_codec_config_t codec_config,
     std::vector<btav_a2dp_codec_config_t> codecs_local_capabilities,
-    std::vector<btav_a2dp_codec_config_t> codecs_selectable_capabilities);
+    std::vector<btav_a2dp_codec_config_t> codecs_selectable_capabilities,
+    bt_bdaddr_t *bd_addr);
 
 /** Callback for audio configuration change.
  *  Used only for the A2DP Sink interface.
@@ -155,13 +173,16 @@ typedef void (* btav_audio_sink_config_callback)(bt_bdaddr_t *bd_addr,
                                                  uint32_t sample_rate,
                                                  uint8_t channel_count);
 
-/** BT-AV A2DP Source callback structure. */
+/** BT-AV A2DP Source callback structure.  */
 typedef struct {
     /** set to sizeof(btav_source_callbacks_t) */
     size_t      size;
     btav_connection_state_callback  connection_state_cb;
     btav_audio_state_callback audio_state_cb;
     btav_audio_source_config_callback audio_config_cb;
+    btav_connection_priority_callback connection_priority_cb;
+    btav_is_multicast_enabled_callback multicast_state_cb;
+    btav_reconfig_a2dp_trigger_callback reconfig_a2dp_trigger_cb;
 } btav_source_callbacks_t;
 
 /** BT-AV A2DP Sink callback structure. */
@@ -194,7 +215,9 @@ typedef struct {
      * Register the BtAv callbacks.
      */
     bt_status_t (*init)(btav_source_callbacks_t* callbacks,
-                std::vector<btav_a2dp_codec_config_t> codec_priorities);
+                        std::vector<btav_a2dp_codec_config_t> codec_priorities,
+                        int max_a2dp_connections,
+                        int a2dp_multicast_state);
 
     /** connect to headset */
     bt_status_t (*connect)( bt_bdaddr_t *bd_addr );
@@ -208,6 +231,8 @@ typedef struct {
     /** Closes the interface. */
     void  (*cleanup)( void );
 
+    /** Send priority of device to stack*/
+    void (*allow_connection)( int is_valid , bt_bdaddr_t *bd_addr);
 } btav_source_interface_t;
 
 /** Represents the standard BT-AV A2DP Sink interface.
