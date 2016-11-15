@@ -48,6 +48,14 @@ typedef enum {
     POWER_HINT_VIDEO_DECODE = 0x00000004,
     POWER_HINT_LOW_POWER = 0x00000005,
     POWER_HINT_CAM_PREVIEW = 0x00000006
+
+#ifdef VENDOR_EDIT
+    /* Define more hints for crpl */
+    ,
+    POWER_HINT_CRPL_ACQUIRE = 0x00000101,
+    POWER_HINT_CRPL_UPDATE  = 0x00000102,
+    POWER_HINT_CRPL_RELEASE = 0x00000103,
+#endif
 } power_hint_t;
 
 typedef enum {
