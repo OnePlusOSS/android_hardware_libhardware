@@ -54,6 +54,7 @@ __BEGIN_DECLS
  */
 #define NFC_NCI_HARDWARE_MODULE_ID "nfc_nci"
 #define NFC_NCI_BCM2079X_HARDWARE_MODULE_ID "nfc_nci.bcm2079x"
+#define NFC_NCI_NXP_PN54X_HARDWARE_MODULE_ID "nfc_nci.pn54x"
 #define NFC_NCI_CONTROLLER "nci"
 
 /*
@@ -69,6 +70,14 @@ typedef struct nfc_nci_module_t {
     struct hw_module_t common;
 } nfc_nci_module_t;
 
+typedef struct
+{
+    uint16_t cmd_len;
+    uint8_t *p_cmd;
+    uint16_t rsp_len;
+    uint8_t *p_cmd_rsp;
+} nfc_nci_ExtnCmd_t;
+
 /*
  * HAL events that can be passed back to the stack
  */
@@ -81,7 +90,9 @@ enum {
     HAL_NFC_PRE_DISCOVER_CPLT_EVT   = 0x03,
     HAL_NFC_REQUEST_CONTROL_EVT     = 0x04,
     HAL_NFC_RELEASE_CONTROL_EVT     = 0x05,
-    HAL_NFC_ERROR_EVT               = 0x06
+    HAL_NFC_ERROR_EVT               = 0x06,
+    HAL_NFC_ENABLE_I2C_FRAGMENTATION_EVT = 0x07,
+    HAL_NFC_POST_MIN_INIT_CPLT_EVT  = 0x08
 };
 
 /*
@@ -95,6 +106,24 @@ enum {
     HAL_NFC_STATUS_ERR_TRANSPORT    = 0x02,
     HAL_NFC_STATUS_ERR_CMD_TIMEOUT  = 0x03,
     HAL_NFC_STATUS_REFUSED          = 0x04
+};
+enum {
+    HAL_NFC_IOCTL_P61_IDLE_MODE = 0,
+    HAL_NFC_IOCTL_P61_WIRED_MODE,
+    HAL_NFC_IOCTL_P61_PWR_MODE,
+    HAL_NFC_IOCTL_P61_DISABLE_MODE,
+    HAL_NFC_IOCTL_P61_ENABLE_MODE,
+    HAL_NFC_IOCTL_SET_BOOT_MODE,
+    HAL_NFC_IOCTL_GET_CONFIG_INFO,
+    HAL_NFC_IOCTL_CHECK_FLASH_REQ,
+    HAL_NFC_IOCTL_FW_DWNLD,
+    HAL_NFC_IOCTL_FW_MW_VER_CHECK,
+    HAL_NFC_IOCTL_DISABLE_HAL_LOG,
+    HAL_NFC_IOCTL_NCI_TRANSCEIVE,
+    HAL_NFC_IOCTL_P61_GET_ACCESS,
+    HAL_NFC_IOCTL_P61_REL_ACCESS,
+    HAL_NFC_IOCTL_P73_ISO_RST,
+	HAL_NFC_IOCTL_REL_SVDD_WAIT
 };
 
 /*
@@ -190,6 +219,12 @@ typedef struct nfc_nci_device {
      * HAL_OPEN_CPLT_EVT will notify when operation is complete.
      */
     int (*power_cycle)(const struct nfc_nci_device *p_dev);
+    /*
+    * (*ioctl)() For P61 power management synchronization
+    * between NFC Wired and SPI.
+    */
+    int (*ioctl)(const struct nfc_nci_device *p_dev, long arg, void *p_data);
+
 } nfc_nci_device_t;
 
 /*
