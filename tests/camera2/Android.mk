@@ -25,7 +25,8 @@ LOCAL_SHARED_LIBRARIES := \
 	libgui \
 	libsync \
 	libui \
-	libdl
+	libdl \
+	android.hardware.camera.device@3.2
 
 LOCAL_C_INCLUDES += \
 	system/media/camera/include \

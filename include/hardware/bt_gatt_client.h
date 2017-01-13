@@ -23,8 +23,6 @@
 #include "bt_gatt_types.h"
 #include "bt_common_types.h"
 
-using std::vector;
-
 __BEGIN_DECLS
 
 /**
@@ -67,23 +65,6 @@ typedef struct
     uint16_t            len;
     uint8_t             is_notify;
 } btgatt_notify_params_t;
-
-typedef struct
-{
-    uint8_t  client_if;
-    uint8_t  action;
-    uint8_t  filt_index;
-    uint16_t feat_seln;
-    uint16_t list_logic_type;
-    uint8_t  filt_logic_type;
-    uint8_t  rssi_high_thres;
-    uint8_t  rssi_low_thres;
-    uint8_t  dely_mode;
-    uint16_t found_timeout;
-    uint16_t lost_timeout;
-    uint8_t  found_timeout_cnt;
-    uint16_t  num_of_tracking_entries;
-} btgatt_filt_param_setup_t;
 
 typedef struct
 {
@@ -238,14 +219,14 @@ typedef struct {
     /** Write a remote characteristic */
     bt_status_t (*write_characteristic)(int conn_id, uint16_t handle,
                     int write_type, int auth_req,
-                    vector<uint8_t> value);
+                    std::vector<uint8_t> value);
 
     /** Read the descriptor for a given characteristic */
     bt_status_t (*read_descriptor)(int conn_id, uint16_t handle, int auth_req);
 
     /** Write a remote descriptor for a given characteristic */
     bt_status_t (*write_descriptor)( int conn_id, uint16_t handle,
-                    int auth_req, vector<uint8_t> value);
+                                     int auth_req, std::vector<uint8_t> value);
 
     /** Execute a prepared write operation */
     bt_status_t (*execute_write)(int conn_id, int execute);
