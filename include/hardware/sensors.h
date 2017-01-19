@@ -56,14 +56,15 @@ __BEGIN_DECLS
 #define SENSORS_HARDWARE_POLL       "poll"
 
 /**
- * Handles must be higher than SENSORS_HANDLE_BASE and must be unique.
- * A Handle identifies a given sensors. The handle is used to activate
- * and/or deactivate sensors.
- * In this version of the API there can only be 256 handles.
+ * Sensor handle is greater than 0 and less than INT32_MAX.
+ *
+ * **** Deprecated ****
+ * Defined values below are kept for code compatibility. Note sensor handle can be as large as
+ * INT32_MAX.
  */
 #define SENSORS_HANDLE_BASE             0
-#define SENSORS_HANDLE_BITS             8
-#define SENSORS_HANDLE_COUNT            (1<<SENSORS_HANDLE_BITS)
+#define SENSORS_HANDLE_BITS             31
+#define SENSORS_HANDLE_COUNT            (1ull<<SENSORS_HANDLE_BITS)
 
 
 /*
@@ -96,8 +97,10 @@ enum {
 #define SENSOR_PERMISSION_BODY_SENSORS "android.permission.BODY_SENSORS"
 
 /*
- * Availability: SENSORS_DEVICE_API_VERSION_1_4
- * Sensor HAL modes used in set_operation_mode method
+ * sensor flags legacy names
+ *
+ * please use SENSOR_FLAG_* directly for new implementation.
+ * @see sensor_t
  */
 
 #define SENSOR_FLAG_MASK(nbit, shift)   (((1<<(nbit))-1)<<(shift))
@@ -106,64 +109,82 @@ enum {
 /*
  * Mask and shift for reporting mode sensor flags defined above.
  */
-#define REPORTING_MODE_SHIFT            (1)
+#define REPORTING_MODE_SHIFT            SENSOR_FLAG_SHIFT_REPORTING_MODE
 #define REPORTING_MODE_NBIT             (3)
-#define REPORTING_MODE_MASK             SENSOR_FLAG_MASK(REPORTING_MODE_NBIT, REPORTING_MODE_SHIFT)
-                                        // 0xE
+#define REPORTING_MODE_MASK             SENSOR_FLAG_MASK_REPORTING_MODE
 
 /*
  * Mask and shift for data_injection mode sensor flags defined above.
  */
-#define DATA_INJECTION_SHIFT            (4)
-#define DATA_INJECTION_MASK             SENSOR_FLAG_MASK_1(DATA_INJECTION_SHIFT) //0x10
+#define DATA_INJECTION_SHIFT            SENSOR_FLAG_SHIFT_DATA_INJECTION
+#define DATA_INJECTION_MASK             SENSOR_FLAG_DATA_INJECTION
 
 /*
  * Mask and shift for dynamic sensor flag.
  */
-#define DYNAMIC_SENSOR_SHIFT            (5)
-#define DYNAMIC_SENSOR_MASK             SENSOR_FLAG_MASK_1(DYNAMIC_SENSOR_SHIFT) //0x20
+#define DYNAMIC_SENSOR_SHIFT            SENSOR_FLAG_SHIFT_DYNAMIC_SENSOR
+#define DYNAMIC_SENSOR_MASK             SENSOR_FLAG_DYNAMIC_SENSOR
 
 /*
  * Mask and shift for sensor additional information support.
  */
-#define ADDITIONAL_INFO_SHIFT           (6)
-#define ADDITIONAL_INFO_MASK            SENSOR_FLAG_MASK_1(ADDITIONAL_INFO_SHIFT) //0x40
+#define ADDITIONAL_INFO_SHIFT           SENSOR_FLAG_SHIFT_ADDITIONAL_INFO
+#define ADDITIONAL_INFO_MASK            SENSOR_FLAG_ADDITIONAL_INFO
 
-#define SENSOR_STRING_TYPE_ACCELEROMETER             "android.sensor.accelerometer"
-#define SENSOR_TYPE_MAGNETIC_FIELD  SENSOR_TYPE_GEOMAGNETIC_FIELD
-#define SENSOR_STRING_TYPE_MAGNETIC_FIELD            "android.sensor.magnetic_field"
-#define SENSOR_STRING_TYPE_ORIENTATION               "android.sensor.orientation"
-#define SENSOR_STRING_TYPE_GYROSCOPE                 "android.sensor.gyroscope"
-#define SENSOR_STRING_TYPE_LIGHT                     "android.sensor.light"
-#define SENSOR_STRING_TYPE_PRESSURE                  "android.sensor.pressure"
-#define SENSOR_STRING_TYPE_TEMPERATURE               "android.sensor.temperature"
-#define SENSOR_STRING_TYPE_PROXIMITY                 "android.sensor.proximity"
-#define SENSOR_STRING_TYPE_GRAVITY                   "android.sensor.gravity"
-#define SENSOR_STRING_TYPE_LINEAR_ACCELERATION      "android.sensor.linear_acceleration"
-#define SENSOR_STRING_TYPE_ROTATION_VECTOR          "android.sensor.rotation_vector"
-#define SENSOR_STRING_TYPE_RELATIVE_HUMIDITY        "android.sensor.relative_humidity"
-#define SENSOR_STRING_TYPE_AMBIENT_TEMPERATURE      "android.sensor.ambient_temperature"
-#define SENSOR_STRING_TYPE_MAGNETIC_FIELD_UNCALIBRATED "android.sensor.magnetic_field_uncalibrated"
-#define SENSOR_STRING_TYPE_GAME_ROTATION_VECTOR     "android.sensor.game_rotation_vector"
-#define SENSOR_STRING_TYPE_GYROSCOPE_UNCALIBRATED   "android.sensor.gyroscope_uncalibrated"
-#define SENSOR_STRING_TYPE_SIGNIFICANT_MOTION       "android.sensor.significant_motion"
-#define SENSOR_STRING_TYPE_STEP_DETECTOR            "android.sensor.step_detector"
-#define SENSOR_STRING_TYPE_STEP_COUNTER             "android.sensor.step_counter"
-#define SENSOR_STRING_TYPE_GEOMAGNETIC_ROTATION_VECTOR "android.sensor.geomagnetic_rotation_vector"
-#define SENSOR_STRING_TYPE_HEART_RATE               "android.sensor.heart_rate"
-#define SENSOR_STRING_TYPE_TILT_DETECTOR               "android.sensor.tilt_detector"
-#define SENSOR_STRING_TYPE_WAKE_GESTURE                        "android.sensor.wake_gesture"
-#define SENSOR_STRING_TYPE_GLANCE_GESTURE                      "android.sensor.glance_gesture"
-#define SENSOR_STRING_TYPE_PICK_UP_GESTURE                     "android.sensor.pick_up_gesture"
-#define SENSOR_STRING_TYPE_WRIST_TILT_GESTURE                  "android.sensor.wrist_tilt_gesture"
-#define SENSOR_STRING_TYPE_DEVICE_ORIENTATION          "android.sensor.device_orientation"
-#define SENSOR_STRING_TYPE_POSE_6DOF                  "android.sensor.pose_6dof"
+/*
+ * Legacy alias of SENSOR_TYPE_MAGNETIC_FIELD.
+ *
+ * Previously, the type of a sensor measuring local magnetic field is named
+ * SENSOR_TYPE_GEOMAGNETIC_FIELD and SENSOR_TYPE_MAGNETIC_FIELD is its alias.
+ * SENSOR_TYPE_MAGNETIC_FIELD is redefined as primary name to avoid confusion.
+ * SENSOR_TYPE_GEOMAGNETIC_FIELD is the alias and is deprecating. New implementation must not use
+ * SENSOR_TYPE_GEOMAGNETIC_FIELD.
+ */
+#define SENSOR_TYPE_GEOMAGNETIC_FIELD   SENSOR_TYPE_MAGNETIC_FIELD
+
+/*
+ * Sensor string types for Android defined sensor types.
+ *
+ * For Android defined sensor types, string type will be override in sensor service and thus no
+ * longer needed to be added to sensor_t data structure.
+ *
+ * These definitions are going to be removed soon.
+ */
+#define SENSOR_STRING_TYPE_ACCELEROMETER                "android.sensor.accelerometer"
+#define SENSOR_STRING_TYPE_MAGNETIC_FIELD               "android.sensor.magnetic_field"
+#define SENSOR_STRING_TYPE_ORIENTATION                  "android.sensor.orientation"
+#define SENSOR_STRING_TYPE_GYROSCOPE                    "android.sensor.gyroscope"
+#define SENSOR_STRING_TYPE_LIGHT                        "android.sensor.light"
+#define SENSOR_STRING_TYPE_PRESSURE                     "android.sensor.pressure"
+#define SENSOR_STRING_TYPE_TEMPERATURE                  "android.sensor.temperature"
+#define SENSOR_STRING_TYPE_PROXIMITY                    "android.sensor.proximity"
+#define SENSOR_STRING_TYPE_GRAVITY                      "android.sensor.gravity"
+#define SENSOR_STRING_TYPE_LINEAR_ACCELERATION          "android.sensor.linear_acceleration"
+#define SENSOR_STRING_TYPE_ROTATION_VECTOR              "android.sensor.rotation_vector"
+#define SENSOR_STRING_TYPE_RELATIVE_HUMIDITY            "android.sensor.relative_humidity"
+#define SENSOR_STRING_TYPE_AMBIENT_TEMPERATURE          "android.sensor.ambient_temperature"
+#define SENSOR_STRING_TYPE_MAGNETIC_FIELD_UNCALIBRATED  "android.sensor.magnetic_field_uncalibrated"
+#define SENSOR_STRING_TYPE_GAME_ROTATION_VECTOR         "android.sensor.game_rotation_vector"
+#define SENSOR_STRING_TYPE_GYROSCOPE_UNCALIBRATED       "android.sensor.gyroscope_uncalibrated"
+#define SENSOR_STRING_TYPE_SIGNIFICANT_MOTION           "android.sensor.significant_motion"
+#define SENSOR_STRING_TYPE_STEP_DETECTOR                "android.sensor.step_detector"
+#define SENSOR_STRING_TYPE_STEP_COUNTER                 "android.sensor.step_counter"
+#define SENSOR_STRING_TYPE_GEOMAGNETIC_ROTATION_VECTOR  "android.sensor.geomagnetic_rotation_vector"
+#define SENSOR_STRING_TYPE_HEART_RATE                   "android.sensor.heart_rate"
+#define SENSOR_STRING_TYPE_TILT_DETECTOR                "android.sensor.tilt_detector"
+#define SENSOR_STRING_TYPE_WAKE_GESTURE                 "android.sensor.wake_gesture"
+#define SENSOR_STRING_TYPE_GLANCE_GESTURE               "android.sensor.glance_gesture"
+#define SENSOR_STRING_TYPE_PICK_UP_GESTURE              "android.sensor.pick_up_gesture"
+#define SENSOR_STRING_TYPE_WRIST_TILT_GESTURE           "android.sensor.wrist_tilt_gesture"
+#define SENSOR_STRING_TYPE_DEVICE_ORIENTATION           "android.sensor.device_orientation"
+#define SENSOR_STRING_TYPE_POSE_6DOF                    "android.sensor.pose_6dof"
 #define SENSOR_STRING_TYPE_STATIONARY_DETECT            "android.sensor.stationary_detect"
 #define SENSOR_STRING_TYPE_MOTION_DETECT                "android.sensor.motion_detect"
 #define SENSOR_STRING_TYPE_HEART_BEAT                   "android.sensor.heart_beat"
-#define SENSOR_STRING_TYPE_DYNAMIC_SENSOR_META                  "android.sensor.dynamic_sensor_meta"
-#define SENSOR_STRING_TYPE_ADDITIONAL_INFO                "android.sensor.additional_info"
-#define SENSOR_STRING_TYPE_LOW_LATENCY_OFFBODY_DETECT     "android.sensor.low_latency_offbody"
+#define SENSOR_STRING_TYPE_DYNAMIC_SENSOR_META          "android.sensor.dynamic_sensor_meta"
+#define SENSOR_STRING_TYPE_ADDITIONAL_INFO              "android.sensor.additional_info"
+#define SENSOR_STRING_TYPE_LOW_LATENCY_OFFBODY_DETECT   "android.sensor.low_latency_offbody"
+#define SENSOR_STRING_TYPE_ACCELEROMETER_UNCALIBRATED   "android.sensor.accelerometer_uncalibrated"
 
 /**
  * Values returned by the accelerometer in various locations in the universe.
@@ -202,7 +223,7 @@ typedef struct {
 } sensors_vec_t;
 
 /**
- * uncalibrated gyroscope and magnetometer event data
+ * uncalibrated accelerometer, gyroscope and magnetometer event data
  */
 typedef struct {
   union {
@@ -326,6 +347,9 @@ typedef struct sensors_event_t {
             /* uncalibrated magnetometer values are in micro-Teslas */
             uncalibrated_event_t uncalibrated_magnetic;
 
+            /* uncalibrated accelerometer values are in  meter per second per second (m/s^2) */
+            uncalibrated_event_t uncalibrated_accelerometer;
+
             /* heart rate data containing value in bpm and status */
             heart_rate_event_t heart_rate;
 
@@ -448,13 +472,14 @@ struct sensor_t {
      */
     uint32_t        fifoMaxEventCount;
 
-    /* type of this sensor as a string. Set to corresponding
-     * SENSOR_STRING_TYPE_*.
-     * When defining an OEM specific sensor or sensor manufacturer specific
-     * sensor, use your reserve domain name as a prefix.
-     * ex: com.google.glass.onheaddetector
-     * For sensors of known type, the android framework might overwrite this
-     * string automatically.
+    /* type of this sensor as a string.
+     *
+     * If type is OEM specific or sensor manufacturer specific type
+     * (>=SENSOR_TYPE_DEVICE_PRIVATE_BASE), this string must be defined with reserved domain of
+     * vendor/OEM as a prefix, e.g. com.google.glass.onheaddetector
+     *
+     * For sensors of Android defined types, Android framework will override this value. It is ok to
+     * leave it pointing to an empty string.
      */
     const char*    stringType;
 
@@ -500,6 +525,23 @@ struct sensor_t {
     void*           reserved[2];
 };
 
+/**
+ * Shared memory information for a direct channel
+ */
+struct sensors_direct_mem_t {
+    int type;                           // enum SENSOR_DIRECT_MEM_...
+    int format;                         // enum SENSOR_DIRECT_FMT_...
+    size_t size;                        // size of the memory region, in bytes
+    const struct native_handle *handle; // shared memory handle, which is interpreted differently
+                                        // depending on type
+};
+
+/**
+ * Direct channel report configuration
+ */
+struct sensors_direct_cfg_t {
+    int rate_level;             // enum SENSOR_DIRECT_RATE_...
+};
 
 /*
  * sensors_poll_device_t is used with SENSORS_DEVICE_API_VERSION_0_1
@@ -607,7 +649,61 @@ typedef struct sensors_poll_device_1 {
      */
     int (*inject_sensor_data)(struct sensors_poll_device_1 *dev, const sensors_event_t *data);
 
-    void (*reserved_procs[7])(void);
+    /*
+     * Register/unregister direct report channel.
+     *
+     * A HAL declares support for direct report by setting non-NULL values for both
+     * register_direct_channel and config_direct_report.
+     *
+     * This function has two operation modes:
+     *
+     * Register: mem != NULL, register a channel using supplied shared memory information. By the
+     * time this function returns, sensors must finish initializing shared memory content
+     * (format dependent, see SENSOR_DIRECT_FMT_*).
+     *      Parameters:
+     *          mem             points to a valid struct sensors_direct_mem_t.
+     *          channel_handle  is ignored.
+     *      Return value:
+     *          A handle of channel (>0, <INT32_MAX) when success, which later can be referred in
+     *          unregister or config_direct_report call, or error code (<0) when failed
+     * Unregister: mem == NULL, unregister a previously registered channel.
+     *      Parameters:
+     *          mem             set to NULL
+     *          channel_handle  contains handle of channel to be unregistered
+     *      Return value:
+     *          0, even if the channel_handle is invalid, in which case it will be a no-op.
+     */
+    int (*register_direct_channel)(struct sensors_poll_device_1 *dev,
+            const struct sensors_direct_mem_t* mem, int channel_handle);
+
+    /*
+     * Configure direct sensor event report in direct channel.
+     *
+     * Start, modify rate or stop direct report of a sensor in a certain direct channel. A special
+     * case is setting sensor handle -1 to stop means to stop all active sensor report on the
+     * channel specified.
+     *
+     * A HAL declares support for direct report by setting non-NULL values for both
+     * register_direct_channel and config_direct_report.
+     *
+     * Parameters:
+     *      sensor_handle   sensor to be configured. The sensor has to support direct report
+     *                      mode by setting flags of sensor_t. Also, direct report mode is only
+     *                      defined for continuous reporting mode sensors.
+     *      channel_handle  channel handle to be configured.
+     *      config          direct report parameters, see sensor_direct_cfg_t.
+     * Return value:
+     *      - when sensor is started or sensor rate level is changed: return positive identifier of
+     *        sensor in specified channel if successful, otherwise return negative error code.
+     *      - when sensor is stopped: return 0 for success or negative error code for failure.
+     */
+    int (*config_direct_report)(struct sensors_poll_device_1 *dev,
+            int sensor_handle, int channel_handle, const struct sensors_direct_cfg_t *config);
+
+    /*
+     * Reserved for future use.
+     */
+    void (*reserved_procs[5])(void);
 
 } sensors_poll_device_1_t;
 
