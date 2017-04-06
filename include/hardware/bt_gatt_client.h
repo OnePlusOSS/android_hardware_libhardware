@@ -166,6 +166,15 @@ typedef void (*services_removed_callback)(int conn_id, uint16_t start_handle, ui
 /** GATT services were added */
 typedef void (*services_added_callback)(int conn_id, btgatt_db_element_t *added, int added_count);
 
+/** Callback invoked when the PHY for a given connection changes */
+typedef void (*phy_updated_callback)(int conn_id, uint8_t tx_phy,
+                                     uint8_t rx_phy, uint8_t status);
+
+/** Callback invoked when the connection parameters for a given connection changes */
+typedef void (*conn_updated_callback)(int conn_id, uint16_t interval,
+                                      uint16_t latency, uint16_t timeout,
+                                      uint8_t status);
+
 typedef struct {
     register_client_callback            register_client_cb;
     connect_callback                    open_cb;
@@ -184,6 +193,8 @@ typedef struct {
     get_gatt_db_callback                get_gatt_db_cb;
     services_removed_callback           services_removed_cb;
     services_added_callback             services_added_cb;
+    phy_updated_callback                phy_updated_cb;
+    conn_updated_callback               conn_updated_cb;
 } btgatt_client_callbacks_t;
 
 /** Represents the standard BT-GATT client interface. */
@@ -196,8 +207,8 @@ typedef struct {
     bt_status_t (*unregister_client)(int client_if );
 
     /** Create a connection to a remote LE or dual-mode device */
-    bt_status_t (*connect)( int client_if, const bt_bdaddr_t *bd_addr,
-                         bool is_direct, int transport );
+    bt_status_t (*connect)(int client_if, const bt_bdaddr_t *bd_addr,
+                           bool is_direct, int transport, int initiating_phys);
 
     /** Disconnect a remote device or cancel a pending connection */
     bt_status_t (*disconnect)( int client_if, const bt_bdaddr_t *bd_addr,
@@ -254,6 +265,14 @@ typedef struct {
     /** Request a connection parameter update */
     bt_status_t (*conn_parameter_update)(const bt_bdaddr_t *bd_addr, int min_interval,
                     int max_interval, int latency, int timeout);
+
+    bt_status_t (*set_preferred_phy)(int conn_id, uint8_t tx_phy,
+                                     uint8_t rx_phy, uint16_t phy_options);
+
+    bt_status_t (*read_phy)(
+        int conn_id,
+        base::Callback<void(uint8_t tx_phy, uint8_t rx_phy, uint8_t status)>
+            cb);
 
     /** Test mode interface */
     bt_status_t (*test_command)( int command, btgatt_test_params_t* params);
