@@ -1,5 +1,14 @@
 // Copyright 2006 The Android Open Source Project
 
+cc_library_headers {
+    name: "libhardware_headers",
+    header_libs: ["libsystem_headers"],
+    export_header_lib_headers: ["libsystem_headers"],
+
+    export_include_dirs: ["include"],
+    vendor_available: true,
+}
+
 cc_library_shared {
     name: "libhardware",
 
@@ -10,6 +19,11 @@ cc_library_shared {
         "libdl",
     ],
     cflags: ["-DQEMU_HARDWARE"],
+
+    header_libs: ["libhardware_headers"],
+    export_header_lib_headers: ["libhardware_headers"],
+
+    vendor_available: true,
 }
 
 subdirs = [
