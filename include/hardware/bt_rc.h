@@ -131,6 +131,7 @@ typedef enum {
     BTRC_MEDIA_ATTR_NUM_TRACKS = 0x05,
     BTRC_MEDIA_ATTR_GENRE = 0x06,
     BTRC_MEDIA_ATTR_PLAYING_TIME = 0x07,
+    BTRC_MEDIA_ATTR_COVER_ART = 0x08,
 } btrc_media_attr_t;
 
 typedef enum {
