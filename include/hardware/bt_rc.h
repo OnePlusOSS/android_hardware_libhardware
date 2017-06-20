@@ -1,4 +1,8 @@
 /*
+ * Copyright (C) 2017, The Linux Foundation. All rights reserved.
+ * Not a Contribution.
+ */
+/*
  * Copyright (C) 2012 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -131,6 +135,7 @@ typedef enum {
     BTRC_MEDIA_ATTR_NUM_TRACKS = 0x05,
     BTRC_MEDIA_ATTR_GENRE = 0x06,
     BTRC_MEDIA_ATTR_PLAYING_TIME = 0x07,
+    BTRC_MEDIA_ATTR_COVER_ART = 0x08,
 } btrc_media_attr_t;
 
 typedef enum {
@@ -380,6 +385,9 @@ typedef void (* btrc_search_callback) (uint16_t charset_id,
 typedef void (* btrc_add_to_now_playing_callback) (uint8_t scope,
                 uint8_t* uid, uint16_t  uid_counter, bt_bdaddr_t *bd_addr);
 
+typedef void (* btrc_connection_state_callback) (
+    bool rc_connect, bool bt_connect, bt_bdaddr_t *bd_addr);
+
 /** BT-RC Target callback structure. */
 typedef struct {
     /** set to sizeof(BtRcCallbacks) */
@@ -405,6 +413,7 @@ typedef struct {
     btrc_get_total_num_of_items_callback        get_total_num_of_items_cb;
     btrc_search_callback                        search_cb;
     btrc_add_to_now_playing_callback            add_to_now_playing_cb;
+    btrc_connection_state_callback              connection_state_cb;
 } btrc_callbacks_t;
 
 /** Represents the standard BT-RC AVRCP Target interface. */
@@ -415,7 +424,7 @@ typedef struct {
     /**
      * Register the BtRc callbacks
      */
-    bt_status_t (*init)( btrc_callbacks_t* callbacks );
+    bt_status_t (*init)( btrc_callbacks_t* callbacks, int max_connections);
 
     /** Respose to GetPlayStatus request. Contains the current
     **  1. Play status
@@ -469,7 +478,8 @@ typedef struct {
     */
     bt_status_t (*register_notification_rsp)(btrc_event_id_t event_id,
                                              btrc_notification_type_t type,
-                                             btrc_register_notification_t *p_param);
+                                             btrc_register_notification_t *p_param,
+                                             bt_bdaddr_t *bd_addr);
 
     /* AVRCP 1.4 enhancements */
 
@@ -516,6 +526,8 @@ typedef struct {
     /* add_to_now playing list response from TG to CT */
     bt_status_t (*add_to_now_playing_rsp)(bt_bdaddr_t *bd_addr, btrc_status_t rsp_status);
 
+    bt_status_t (*is_device_active_in_handoff) (bt_bdaddr_t *bd_addr);
+
     /** Closes the interface. */
     void  (*cleanup)( void );
 } btrc_interface_t;
@@ -523,9 +535,6 @@ typedef struct {
 typedef void (* btrc_passthrough_rsp_callback) (bt_bdaddr_t *bd_addr, int id, int key_state);
 
 typedef void (* btrc_groupnavigation_rsp_callback) (int id, int key_state);
-
-typedef void (* btrc_connection_state_callback) (
-    bool rc_connect, bool bt_connect, bt_bdaddr_t *bd_addr);
 
 typedef void (* btrc_ctrl_getrcfeatures_callback) (bt_bdaddr_t *bd_addr, int features);
 
@@ -594,7 +603,7 @@ typedef struct {
     /**
      * Register the BtRc callbacks
      */
-    bt_status_t (*init)( btrc_ctrl_callbacks_t* callbacks );
+    bt_status_t (*init)( btrc_ctrl_callbacks_t* callbacks);
 
     /** send pass through command to target */
     bt_status_t (*send_pass_through_cmd) (bt_bdaddr_t *bd_addr, uint8_t key_code,
