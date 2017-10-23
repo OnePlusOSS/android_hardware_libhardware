@@ -261,6 +261,9 @@ typedef struct fingerprint_device {
     int (*authenticate)(struct fingerprint_device *dev, uint64_t operation_id, uint32_t gid);
 
     /* Reserved for backward binary compatibility */
+ 
+    int (*update_status)(struct fingerprint_device *dev,uint32_t status);
+    uint32_t (*get_status)(struct fingerprint_device *dev);
     void *reserved[4];
 } fingerprint_device_t;
 
