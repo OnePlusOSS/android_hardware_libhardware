@@ -50,6 +50,10 @@ typedef enum fingerprint_error {
     FINGERPRINT_ERROR_NO_SPACE = 4, /* No space available to store a template */
     FINGERPRINT_ERROR_CANCELED = 5, /* The current operation can't proceed. See above. */
     FINGERPRINT_ERROR_UNABLE_TO_REMOVE = 6, /* fingerprint with given id can't be removed */
+    /*#ifdef VENDOR_EDIT*/
+    /*liuyan 2017/8/8 add for duplicate enroll*/
+    FINGERPRINT_ERROR_DUPLICATE_FINGER = 100,
+    /*#endif*/
     FINGERPRINT_ERROR_VENDOR_BASE = 1000 /* vendor-specific error messages start here */
 } fingerprint_error_t;
 
@@ -251,6 +255,8 @@ typedef struct fingerprint_device {
     int (*authenticate)(struct fingerprint_device *dev, uint64_t operation_id, uint32_t gid);
 
     /* Reserved for backward binary compatibility */
+    int (*update_status)(struct fingerprint_device *dev,uint32_t status);
+    uint32_t (*get_status)(struct fingerprint_device *dev);
     void *reserved[4];
 } fingerprint_device_t;
 

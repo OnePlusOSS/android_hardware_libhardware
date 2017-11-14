@@ -202,6 +202,16 @@ found:
     return load(class_id, path, module);
 }
 
+/*#ifdef VENDOR_EDIT*/
+/*liuyan 2017/7/26 add*/
+int hw_get_module_by_path(const char *class_id, const char *path,
+                           const struct hw_module_t **module)
+{
+
+    return load(class_id, path, module);
+}
+/*#endif*/
+
 int hw_get_module(const char *id, const struct hw_module_t **module)
 {
     return hw_get_module_by_class(id, NULL, module);
